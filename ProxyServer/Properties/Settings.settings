@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="Port" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">8500</Value>
+      <Value Profile="(Default)">12000</Value>
     </Setting>
     <Setting Name="isDecryptSSL" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>

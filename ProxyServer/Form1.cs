@@ -1,8 +1,6 @@
 ﻿
 using System;
-using System.IO;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Titanium.Web.Proxy;
@@ -11,32 +9,37 @@ using Titanium.Web.Proxy.Models;
 
 namespace ProxyServerApp
 {
-    public partial class Form1 : Form
+	public partial class Form1 : Form
     {
         public Form1()
         {
             InitializeComponent();
         }
-        ProxyServer proxyServer = new ProxyServer();
+        
+        private ProxyServer ProxyServer => new();
+
         private void StartProxy_Click(object sender, EventArgs e)
         {
-
+            ProxyServer.BeforeRequest += OnRequest;
             
-            proxyServer.BeforeRequest += OnRequest;
             //proxyServer.conn
             var explicitEndPoint = new ExplicitProxyEndPoint(IPAddress.Any, 9001, true) { };
+            
             //explicitEndPoint.BeforeTunnelConnect += OnBeforeTunnelConnectRequest;
-            proxyServer.AddEndPoint(explicitEndPoint);
+            ProxyServer.AddEndPoint(explicitEndPoint);
 
-            proxyServer.Start();
-            foreach (var endPoint in proxyServer.ProxyEndPoints)
-                majorLogsTxt.AppendText(string.Format("Listening on '{0}' endpoint at Ip {1} and port: {2} \n",
+            ProxyServer.Start();
+            foreach (var endPoint in ProxyServer.ProxyEndPoints)
+			{
+				majorLogsTxt.AppendText(string.Format("Listening on '{0}' endpoint at Ip {1} and port: {2} \n",
                     endPoint.GetType().Name, endPoint.IpAddress, endPoint.Port));
-
-        }
+			}
+		}
 
         private async Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
         {
+            await Task.CompletedTask;
+
             string hostname = e.HttpClient.Request.RequestUri.Host;
 
             LogMaker.AddLogs("--------------Host Request--------");
@@ -50,11 +53,11 @@ namespace ProxyServerApp
 
         public async Task OnRequest(object sender, SessionEventArgs e)
         {
-            
             //Console.WriteLine(e.HttpClient.Request.Url);
-
             // read request headers
+
             var requestHeaders = e.HttpClient.Request.Headers.GetAllHeaders();
+            
             //var responseHeaders = e.HttpClient.Response.Headers.GetAllHeaders();
             LogMaker.AddLogs("--------------Request--------");
             LogMaker.AddLogs("-------" + e.HttpClient.Request.Url + "--------");
@@ -85,14 +88,14 @@ namespace ProxyServerApp
             //{
             //    e.Redirect("https://www.paypal.com");
             //}
-
-
         }
 
 
         private void EndProxy_Click(object sender, EventArgs e)
         {
-            proxyServer.Stop();
+
+
+            ProxyServer.Stop();
         }
 
         private void DoLogsCheck_CheckedChanged(object sender, EventArgs e)
