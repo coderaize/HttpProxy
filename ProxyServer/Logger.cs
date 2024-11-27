@@ -92,21 +92,33 @@ namespace ProxyServerApp
 			{
 				lock (lockObject)
 				{
-					using (StreamWriter file = new StreamWriter(LogPath, true))
+					using (StreamWriter file = new(LogPath, true))
 					{
-						file.WriteLine(Logs.ToString());
+						if (Logs.Length > 0)
+						{
+							file.Write(Logs.ToString());
+						}
+						file.Close();
 					}
 					Logs.Clear();
 
-					using (StreamWriter file = new StreamWriter(VerbosePath, true))
+					using (StreamWriter file = new(VerbosePath, true))
 					{
-						file.WriteLine(VerboseLogs.ToString());
+						if (VerboseLogs.Length > 0)
+						{
+							file.Write(VerboseLogs.ToString());
+						}
+						file.Close();
 					}
 					VerboseLogs.Clear();
 
-					using (StreamWriter file = new StreamWriter(ErrorPath, true))
+					using (StreamWriter file = new(ErrorPath, true))
 					{
-						file.WriteLine(Errors.ToString());
+						if (Errors.Length > 0)
+						{
+							file.Write(Errors.ToString());
+						}
+						file.Close();
 					}
 					Errors.Clear();
 				}

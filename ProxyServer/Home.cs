@@ -127,19 +127,35 @@ namespace ProxyServerApp
 		{
 			await Task.CompletedTask;
 
-			this.Text = "[Connects]" + proxyServer.ThreadPoolWorkerThread.ToString();
+			//Blocker
+			var url = e.HttpClient.Request.Url;
+			var isUrlBlocked = BlockedWebs.Any(url.StartsWith);
 
-			var datetime = DateTime.Now;
+			if (isUrlBlocked)
+			{
+				e.Ok("<!DOCTYPE html>" +
+					"<html><body><h1>" +
+					"Website Blocked" +
+					"</h1>" +
+					"<p>Blocked by XC.</p>" +
+					"</body>" +
+					"</html>");
+			}
 
-			Logger.Instance.Log($"""
+			// Logger
+			await Task.Run(() =>
+			{
+				var datetime = DateTime.Now;
+
+				Logger.Instance.Log($"""
 				-----------
 				{datetime:yyyyMMdd_HHmmss.fff}
 				{e.HttpClient.Request.Url}
 				""");
 
-			//Detailed Logs
-			Logger.Instance.LogVerboseIf(() => detailedLogsCheck.Checked,
-				$"""
+				//Detailed Logs
+				Logger.Instance.LogVerboseIf(() => detailedLogsCheck.Checked,
+					$"""
 					-----------
 					{datetime:yyyyMMdd_HHmmss.fff}
 					
@@ -153,6 +169,12 @@ namespace ProxyServerApp
 					{string.Join("\r\n", e.TimeLine.Select(x => $"{x.Key}:{x.Value}"))}
 					[][][][]
 					""");
+
+				Invoke(() =>
+				{
+					Text = "[Connects]" + proxyServer.ThreadPoolWorkerThread.ToString();
+				});
+			}).ConfigureAwait(false);
 		}
 
 		private void StopBtn_Click(object sender, EventArgs e)
@@ -170,7 +192,7 @@ namespace ProxyServerApp
 
 		private void ClearMajorLogsaBtn_Click(object sender, EventArgs e)
 		{
-			majorLogsTxt.Text = "";
+			majorLogsTxt.Clear();
 		}
 
 		private async Task OnCertificateSelection(object sender, CertificateSelectionEventArgs e)
@@ -190,6 +212,14 @@ namespace ProxyServerApp
 
 		private async Task OnBeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
 		{
+			//Blocker
+			var url = e.HttpClient.Request.Url;
+			var isUrlBlocked = BlockedWebs.Any(url.StartsWith);
+
+			if (isUrlBlocked)
+			{
+				e.DecryptSsl = true;
+			}
 			await Task.CompletedTask;
 		}
 	}
